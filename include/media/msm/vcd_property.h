@@ -416,8 +416,6 @@ struct vcd_property_meta_buffer {
 	u8 *dev_addr_iommu;
 	void *client_data_iommu;
 };
-<<<<<<< HEAD
-=======
 
 struct vcd_property_bitstream_restrict_enable {
 	u32 bitstream_restrict_enable_flag;
@@ -452,6 +450,4 @@ struct vcd_property_ltruse_type {
 	u32 ltr_id;
 	u32 ltr_frames;
 };
-
->>>>>>> cdebe11... msm: vidc: Add LTR feature for H264 encoder
 #endif

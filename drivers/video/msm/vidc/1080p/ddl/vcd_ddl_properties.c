@@ -1196,11 +1196,25 @@ static u32 ddl_set_enc_property(struct ddl_client_context *ddl,
 		}
 		break;
 	}
+	case VCD_I_ENABLE_VUI_BITSTREAM_RESTRICT_FLAG:
+	{
+		struct vcd_property_bitstream_restrict_enable *restrict_enable =
+			(struct vcd_property_bitstream_restrict_enable *)
+				property_value;
+		if (sizeof(struct vcd_property_bitstream_restrict_enable) ==
+			property_hdr->sz &&
+			encoder->codec.codec == VCD_CODEC_H264) {
+			encoder->bitstream_restrict_enable =
+			restrict_enable->bitstream_restrict_enable_flag;
+			vcd_status = VCD_S_SUCCESS;
+		}
+		break;
+	}
 	default:
 		DDL_MSG_ERROR("%s: INVALID ID 0x%x\n", __func__,
 			(int)property_hdr->prop_id);
 		vcd_status = VCD_ERR_ILLEGAL_OP;
-	break;
+		break;
 	}
 	return vcd_status;
 }
