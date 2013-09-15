@@ -1,8 +1,4 @@
-<<<<<<< HEAD
-/* Copyright (c) 2010-2012, The Linux Foundation. All rights reserved.
-=======
 /* Copyright (c) 2010-2013, The Linux Foundation. All rights reserved.
->>>>>>> f348768... msm: vidc: Add a check for separate metadata buffers
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
