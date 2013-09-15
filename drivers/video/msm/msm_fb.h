@@ -82,7 +82,7 @@ struct msm_fb_data_type {
 
 	DISP_TARGET dest;
 	struct fb_info *fbi;
-
+	atomic_t commit_cnt;
 	struct device *dev;
 	boolean op_enable;
 	uint32 fb_imgType;
