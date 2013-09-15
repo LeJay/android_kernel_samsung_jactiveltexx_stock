@@ -706,20 +706,21 @@ static u32 vid_dec_set_turbo_clk(struct video_client_ctx *client_ctx)
 {
 	struct vcd_property_hdr vcd_property_hdr;
 	u32 vcd_status = VCD_ERR_FAIL;
-	u32 dummy = 0;
+	struct vcd_property_perf_level perf_level;
+	perf_level.level = VCD_PERF_LEVEL_TURBO;
 
 	if (!client_ctx)
 		return false;
-	vcd_property_hdr.prop_id = VCD_I_SET_TURBO_CLK;
-	vcd_property_hdr.sz = sizeof(struct vcd_property_frame_size);
-
+	vcd_property_hdr.prop_id = VCD_REQ_PERF_LEVEL;
+	vcd_property_hdr.sz = sizeof(struct vcd_property_perf_level);
 	vcd_status = vcd_set_property(client_ctx->vcd_handle,
-				      &vcd_property_hdr, &dummy);
-
-	if (vcd_status)
+				      &vcd_property_hdr, &perf_level);
+	if (vcd_status) {
+		ERR("%s: set turbo perf_level failed", __func__);
 		return false;
-	else
+	} else {
 		return true;
+	}
 }
 
 static u32 vid_dec_get_frame_resolution(struct video_client_ctx *client_ctx,
@@ -1624,6 +1625,7 @@ static u32 vid_dec_start_stop(struct video_client_ctx *client_ctx, u32 start)
 				return false;
 			}
 		}
+		client_ctx->stop_called = false;
 	} else {
 		DBG("%s(): Calling vcd_stop()", __func__);
 		mutex_lock(&vid_dec_device_p->lock);
@@ -1964,6 +1966,19 @@ static long vid_dec_ioctl(struct file *file,
 		buffer_req.max_count = vdec_buf_req.maxcount;
 		buffer_req.min_count = vdec_buf_req.mincount;
 		buffer_req.sz = vdec_buf_req.buffer_size;
+		buffer_req.buf_pool_id = vdec_buf_req.buf_poolid;
+		buffer_req.meta_buffer_size = vdec_buf_req.meta_buffer_size;
+		DBG("SET_BUF_REQ: port = %u, min = %u, max = %u, "\
+			"act = %u, size = %u, align = %u, pool = %u, "\
+			"meta_buf_size = %u",
+			(u32)vdec_buf_req.buffer_type,
+			(u32)buffer_req.min_count,
+			(u32)buffer_req.max_count,
+			(u32)buffer_req.actual_count,
+			(u32)buffer_req.sz,
+			(u32)buffer_req.align,
+			(u32)buffer_req.buf_pool_id,
+			(u32)buffer_req.meta_buffer_size);
 
 		switch (vdec_buf_req.buffer_type) {
 		case VDEC_BUFFER_TYPE_INPUT:
@@ -1996,8 +2011,19 @@ static long vid_dec_ioctl(struct file *file,
 			return -EFAULT;
 
 		result = vid_dec_get_buffer_req(client_ctx, &vdec_buf_req);
-
 		if (result) {
+			DBG("GET_BUF_REQ: port = %u, min = %u, "\
+				"max = %u, act = %u, size = %u, "\
+				"align = %u, pool = %u, "\
+				"meta_buf_size = %u",
+				(u32)vdec_buf_req.buffer_type,
+				(u32)vdec_buf_req.mincount,
+				(u32)vdec_buf_req.maxcount,
+				(u32)vdec_buf_req.actualcount,
+				(u32)vdec_buf_req.buffer_size,
+				(u32)vdec_buf_req.alignment,
+				(u32)vdec_buf_req.buf_poolid,
+				(u32)vdec_buf_req.meta_buffer_size);
 			if (copy_to_user(vdec_msg.out, &vdec_buf_req,
 					sizeof(vdec_buf_req)))
 				return -EFAULT;
@@ -2208,7 +2234,7 @@ static long vid_dec_ioctl(struct file *file,
 			client_ctx->seq_hdr_ion_handle = ion_import_dma_buf(
 				client_ctx->user_ion_client,
 				seq_header.pmem_fd);
-			if (!client_ctx->seq_hdr_ion_handle) {
+			if (IS_ERR_OR_NULL(client_ctx->seq_hdr_ion_handle)) {
 				ERR("%s(): get_ION_handle failed\n", __func__);
 				return false;
 			}
@@ -2225,7 +2251,7 @@ static long vid_dec_ioctl(struct file *file,
 			ker_vaddr = (unsigned long) ion_map_kernel(
 				client_ctx->user_ion_client,
 				client_ctx->seq_hdr_ion_handle);
-			if (!ker_vaddr) {
+			if (IS_ERR_OR_NULL((void *)ker_vaddr)) {
 				ERR("%s():get_ION_kernel virtual addr fail\n",
 							 __func__);
 				ion_free(client_ctx->user_ion_client,
@@ -2268,7 +2294,7 @@ static long vid_dec_ioctl(struct file *file,
 			return -EFAULT;
 		}
 		if (vcd_get_ion_status()) {
-			if (client_ctx->seq_hdr_ion_handle) {
+			if (!IS_ERR_OR_NULL(client_ctx->seq_hdr_ion_handle)) {
 				ion_unmap_kernel(client_ctx->user_ion_client,
 						client_ctx->seq_hdr_ion_handle);
 				ion_free(client_ctx->user_ion_client,
@@ -2576,7 +2602,7 @@ int vid_dec_open_client(struct video_client_ctx **vid_clnt_ctx, int flags)
 	}
 
 	client_index = vid_dec_get_empty_client_index();
-	if (client_index == -1) {
+	if (client_index < 0) {
 		ERR("%s() : No free clients client_index == -1\n", __func__);
 		rc = -ENOMEM;
 		goto client_failure;

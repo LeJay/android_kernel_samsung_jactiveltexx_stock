@@ -1,4 +1,4 @@
-/* Copyright (c) 2010-2012, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2010-2013, Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -218,15 +218,15 @@ static void vid_enc_output_frame_done(struct video_client_ctx *client_ctx,
 
 	switch (event) {
 	case VCD_EVT_RESP_OUTPUT_DONE:
-	   DBG("Send INPUT_DON message to client = %p\n",
+	   DBG("Send OUTPUT_DON message to client = %p\n",
 			client_ctx);
 	   break;
 	case VCD_EVT_RESP_OUTPUT_FLUSHED:
-	   DBG("Send INPUT_FLUSHED message to client = %p\n",
+	   DBG("Send OUTPUT_FLUSHED message to client = %p\n",
 		   client_ctx);
 	   break;
 	default:
-	   ERR("QVD: vid_enc_output_frame_done invalid cmd type: %d\n", event);
+	   ERR("vid_enc_output_frame_done invalid cmd type: %d\n", event);
 	   venc_msg->venc_msg_info.statuscode = VEN_S_EFATAL;
 	   break;
 	}
@@ -567,7 +567,7 @@ static int vid_enc_open_client(struct video_client_ctx **vid_clnt_ctx,
 
 	client_index = vid_enc_get_empty_client_index();
 
-	if (client_index == -1) {
+	if (client_index < 0) {
 		ERR("%s() : No free clients client_index == -1\n",
 			__func__);
 		rc = -ENODEV;
@@ -1786,7 +1786,7 @@ static long vid_enc_ioctl(struct file *file,
 		if (copy_to_user(venc_msg.out,
 			&curr_perf_level, sizeof(u32)))
 			return -EFAULT;
-   	break;
+		break;
 	}
 	case VEN_IOCTL_SET_LTRMODE:
 	case VEN_IOCTL_GET_LTRMODE:
@@ -1924,7 +1924,7 @@ static long vid_enc_ioctl(struct file *file,
 			return -EIO;
 		}
 		break;
-	}    
+	}
 	case VEN_IOCTL_SET_AC_PREDICTION:
 	case VEN_IOCTL_GET_AC_PREDICTION:
 	case VEN_IOCTL_SET_RVLC:

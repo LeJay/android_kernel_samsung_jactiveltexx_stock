@@ -51,6 +51,8 @@
 #define MSM_FB_DEFAULT_PAGE_SIZE 2
 #define MFD_KEY  0x11161126
 #define MSM_FB_MAX_DEV_LIST 32
+/* Disable EARLYSUSPEND for mdp driver */
+#define DISABLE_EARLY_SUSPEND
 
 struct disp_info_type_suspend {
 	boolean op_enable;
@@ -82,7 +84,7 @@ struct msm_fb_data_type {
 
 	DISP_TARGET dest;
 	struct fb_info *fbi;
-	atomic_t commit_cnt;
+
 	struct device *dev;
 	boolean op_enable;
 	uint32 fb_imgType;
@@ -162,11 +164,13 @@ struct msm_fb_data_type {
 	struct dentry *sub_dir;
 #endif
 
+#ifndef DISABLE_EARLY_SUSPEND
 #ifdef CONFIG_HAS_EARLYSUSPEND
 	struct early_suspend early_suspend;
 #ifdef CONFIG_FB_MSM_MDDI
 	struct early_suspend mddi_early_suspend;
 	struct early_suspend mddi_ext_early_suspend;
+#endif
 #endif
 #endif
 	u32 mdp_fb_page_protection;
@@ -200,13 +204,21 @@ struct msm_fb_data_type {
 	struct sw_sync_timeline *timeline;
 	int timeline_value;
 	struct mutex sync_mutex;
+	struct mutex queue_mutex;
 	struct completion commit_comp;
 	u32 is_committing;
-	struct work_struct commit_work;
+	atomic_t commit_cnt;
+	struct task_struct *commit_thread;
+	wait_queue_head_t commit_queue;
+	int wake_commit_thread;
 	void *msm_fb_backup;
 	boolean panel_driver_on;
 	int vsync_sysfs_created;
 	int resume_state;
+	void *copy_splash_buf;
+	unsigned char *copy_splash_phys;
+	uint32 sec_mapped;				
+	uint32 sec_active;				
 };
 struct msm_fb_backup_type {
 	struct fb_info info;
@@ -233,6 +245,8 @@ int calc_fb_offset(struct msm_fb_data_type *mfd, struct fb_info *fbi, int bpp);
 void msm_fb_wait_for_fence(struct msm_fb_data_type *mfd);
 int msm_fb_signal_timeline(struct msm_fb_data_type *mfd);
 void msm_fb_release_timeline(struct msm_fb_data_type *mfd);
+void msm_fb_release_busy(struct msm_fb_data_type *mfd);
+
 #ifdef CONFIG_FB_BACKLIGHT
 void msm_fb_config_backlight(struct msm_fb_data_type *mfd);
 #endif
