@@ -190,7 +190,7 @@ struct msm_rotator_dev {
 	#endif
 	u32 sec_mapped;
 	u32 mmu_clk_on;
-	struct rot_sync_info sync_info[MAX_SESSIONS];
+//	struct rot_sync_info sync_info[MAX_SESSIONS];
 };
 
 #define COMPONENT_5BITS 1
