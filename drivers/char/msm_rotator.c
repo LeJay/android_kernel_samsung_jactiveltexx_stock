@@ -1638,40 +1638,6 @@ static int rot_disable_iommu_clocks(struct msm_rotator_dev *rot_dev)
 	return 0;
 }
 
-static int map_sec_resource(struct msm_rotator_dev *rot_dev)
-{
-	int ret = 0;
-	if (rot_dev->sec_mapped)
-		return 0;
-
-	ret = rot_enable_iommu_clocks(rot_dev);
-	if (ret) {
-		pr_err("IOMMU clock enabled failed while open");
-		return ret;
-	}
-	ret = msm_ion_secure_heap(ION_HEAP(ION_CP_MM_HEAP_ID));
-	if (ret)
-		pr_err("ION heap secure failed heap id %d ret %d\n",
-			   ION_CP_MM_HEAP_ID, ret);
-	else
-		rot_dev->sec_mapped = 1;
-	rot_disable_iommu_clocks(rot_dev);
-	return ret;
-}
-
-static int unmap_sec_resource(struct msm_rotator_dev *rot_dev)
-{
-	int ret = 0;
-	ret = rot_enable_iommu_clocks(rot_dev);
-	if (ret) {
-		pr_err("IOMMU clock enabled failed while close\n");
-		return ret;
-	}
-	msm_ion_unsecure_heap(ION_HEAP(ION_CP_MM_HEAP_ID));
-	rot_dev->sec_mapped = 0;
-	rot_disable_iommu_clocks(rot_dev);
-	return ret;
-}
 
 static int msm_rotator_start(unsigned long arg,
 			     struct msm_rotator_fd_info *fd_info)
