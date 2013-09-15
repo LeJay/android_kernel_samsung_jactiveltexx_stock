@@ -190,7 +190,7 @@ struct msm_rotator_dev {
 	#endif
 	u32 sec_mapped;
 	u32 mmu_clk_on;
-//	struct rot_sync_info sync_info[MAX_SESSIONS];
+	struct rot_sync_info sync_info[MAX_SESSIONS];
 };
 
 #define COMPONENT_5BITS 1
@@ -1650,7 +1650,7 @@ static int msm_rotator_start(unsigned long arg,
 	unsigned int dst_w, dst_h;
 	unsigned int is_planar420 = 0;
 	int fast_yuv_en = 0;
-	struct rot_sync_info *sync_info;
+//	struct rot_sync_info *sync_info;
 
 	if (copy_from_user(&info, (void __user *)arg, sizeof(info)))
 		return -EFAULT;
