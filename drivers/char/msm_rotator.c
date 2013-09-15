@@ -1659,7 +1659,7 @@ static int map_sec_resource(struct msm_rotator_dev *rot_dev)
 	return ret;
 }
 
-static int unmap_sec_resource(struct msm_rotator_dev *rot_dev)
+/*static int unmap_sec_resource(struct msm_rotator_dev *rot_dev)
 {
 	int ret = 0;
 	ret = rot_enable_iommu_clocks(rot_dev);
@@ -1672,7 +1672,7 @@ static int unmap_sec_resource(struct msm_rotator_dev *rot_dev)
 	rot_disable_iommu_clocks(rot_dev);
 	return ret;
 }
-
+*/
 static int msm_rotator_start(unsigned long arg,
 			     struct msm_rotator_fd_info *fd_info)
 {
