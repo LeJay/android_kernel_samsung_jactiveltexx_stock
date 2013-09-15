@@ -76,6 +76,7 @@
 #define MSMFB_WRITEBACK_SET_MIRRORING_HINT _IOW(MSMFB_IOCTL_MAGIC, 165, \
 						unsigned int)
 #define MSMFB_METADATA_SET  _IOW(MSMFB_IOCTL_MAGIC, 165, struct msmfb_metadata)
+#define MSMFB_METADATA_GET  _IOW(MSMFB_IOCTL_MAGIC, 166, struct msmfb_metadata)
 
 #define FB_TYPE_3D_PANEL 0x10101010
 #define MDP_IMGTYPE2_START 0x10000
@@ -505,9 +506,11 @@ struct msmfb_mdp_pp {
 		struct mdp_bl_scale_data bl_scale_data;
 	} data;
 };
+
 enum {
 	metadata_op_none,
 	metadata_op_base_blend,
+	metadata_op_frame_rate,
 	metadata_op_max
 };
 
@@ -520,9 +523,9 @@ struct msmfb_metadata {
 	uint32_t flags;
 	union {
 		struct mdp_blend_cfg blend_cfg;
+		uint32_t panel_frame_rate;
 	} data;
 };
-
 
 #define MDP_MAX_FENCE_FD	10
 #define MDP_BUF_SYNC_FLAG_WAIT	1
@@ -556,7 +559,7 @@ struct mdp_mixer_info {
 	int z_order;
 };
 
-#define MAX_PIPE_PER_MIXER 5 //ss fix 4-> 5.  this value should be (MDP4_MIXER_STAGE_MAX-MDP4_MIXER_STAGE_BASE)
+#define MAX_PIPE_PER_MIXER  5
 
 struct msmfb_mixer_info_req {
 	int mixer_num;
