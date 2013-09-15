@@ -3723,7 +3723,7 @@ buf_sync_err_3:
 buf_sync_err_2:
 	put_unused_fd(release_fen_fd);
 buf_sync_err_1:
-	for (i = 0; i < fence_cnt; i++)
+	for (i = 0; i < mfd->acq_fen_cnt; i++)
 		sync_fence_put(mfd->acq_fen[i]);
 	mfd->acq_fen_cnt = 0;
 	mutex_unlock(&mfd->sync_mutex);
